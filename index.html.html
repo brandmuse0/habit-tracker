@@ -1,0 +1,1930 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>감성 이모지 습관 트래커</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0f1020;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.13);
+      --text: #f8f7ff;
+      --muted: #a8a6c7;
+      --line: rgba(255, 255, 255, 0.12);
+      --accent: #ff8bd1;
+      --accent-2: #7df9ff;
+      --accent-3: #9c7cff;
+      --green: #9dffb0;
+      --danger: #ff6b8a;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+      --glow: rgba(255, 139, 209, 0.28);
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, var(--glow), transparent 34%),
+        radial-gradient(circle at top right, rgba(125, 249, 255, 0.16), transparent 32%),
+        radial-gradient(circle at bottom, rgba(156, 124, 255, 0.20), transparent 36%),
+        var(--bg);
+      padding: 28px;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .app {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .screen {
+      animation: fadeUp 0.35s ease both;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .entry-wrap {
+      min-height: calc(100vh - 56px);
+      display: grid;
+      place-items: center;
+    }
+
+    .entry-card {
+      width: min(900px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 36px;
+      background: rgba(255, 255, 255, 0.075);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(22px);
+      overflow: hidden;
+    }
+
+    .entry-hero {
+      padding: clamp(28px, 5vw, 48px);
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025));
+    }
+
+    .eyebrow {
+      color: var(--accent-2);
+      font-size: 14px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: clamp(34px, 7vw, 68px);
+      line-height: 1;
+      letter-spacing: -0.06em;
+      text-shadow: 0 0 28px var(--glow);
+    }
+
+    .entry-hero p,
+    .hero p {
+      color: var(--muted);
+      max-width: 620px;
+      margin-top: 14px;
+      line-height: 1.7;
+    }
+
+    .profile-area {
+      padding: clamp(22px, 4vw, 34px);
+    }
+
+    .profile-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .profile-head h2 {
+      font-size: 24px;
+      letter-spacing: -0.04em;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+    }
+
+    .profile-card {
+      position: relative;
+      min-height: 170px;
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      padding: 20px;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.07);
+      cursor: pointer;
+      overflow: hidden;
+      text-align: left;
+      transition: 0.24s ease;
+    }
+
+    .profile-card::before {
+      content: "";
+      position: absolute;
+      inset: -50px -40px auto auto;
+      width: 130px;
+      height: 130px;
+      border-radius: 999px;
+      background: var(--profile-color, var(--accent));
+      opacity: 0.22;
+      filter: blur(2px);
+    }
+
+    .profile-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(255, 255, 255, 0.26);
+      box-shadow: 0 20px 44px rgba(0, 0, 0, 0.24);
+    }
+
+    .profile-emoji {
+      position: relative;
+      z-index: 1;
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      font-size: 32px;
+      background: rgba(255, 255, 255, 0.11);
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.20);
+    }
+
+    .profile-name {
+      position: relative;
+      z-index: 1;
+      font-size: 22px;
+      font-weight: 950;
+      letter-spacing: -0.04em;
+      margin-bottom: 6px;
+    }
+
+    .profile-theme {
+      position: relative;
+      z-index: 1;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .profile-actions {
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+      z-index: 2;
+      display: flex;
+      gap: 6px;
+    }
+
+    .create-profile-panel {
+      display: grid;
+      gap: 18px;
+    }
+
+    .choice-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
+
+    .emoji-choice,
+    .theme-choice {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.07);
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .emoji-choice {
+      width: 48px;
+      height: 48px;
+      font-size: 24px;
+    }
+
+    .theme-choice {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 14px;
+      font-weight: 800;
+    }
+
+    .emoji-choice.active,
+    .theme-choice.active {
+      border-color: var(--accent-2);
+      background: rgba(125, 249, 255, 0.12);
+      box-shadow: 0 0 0 4px rgba(125, 249, 255, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .theme-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      background: var(--dot-color);
+      box-shadow: 0 0 14px var(--dot-color);
+    }
+
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .hero-title-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 8px;
+    }
+
+    .current-profile-bubble {
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 22px;
+      font-size: 34px;
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.25), 0 0 28px var(--glow);
+    }
+
+    .streak-card {
+      min-width: 280px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 20%, transparent), rgba(125, 249, 255, 0.08));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .streak-number {
+      font-size: 42px;
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+
+    .streak-label {
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 330px 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .right-column {
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(20px);
+      overflow: hidden;
+    }
+
+    .panel-inner {
+      padding: 22px;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .panel-title h2 {
+      font-size: 20px;
+      letter-spacing: -0.03em;
+    }
+
+    .form {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 6px;
+      display: inline-block;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      outline: none;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 14px 15px;
+      transition: 0.25s ease;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--accent-2);
+      box-shadow: 0 0 0 4px rgba(125, 249, 255, 0.12);
+    }
+
+    select option {
+      color: #18182b;
+    }
+
+    .btn {
+      border: 0;
+      cursor: pointer;
+      border-radius: 16px;
+      padding: 14px 16px;
+      color: #10101f;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--accent-2), var(--accent));
+      box-shadow: 0 12px 30px var(--glow);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 36px rgba(125, 249, 255, 0.20);
+      filter: brightness(1.05);
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn.secondary {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+      margin: -4px 0 16px;
+    }
+
+    .habit-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .habit-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.07);
+      transition: 0.22s ease;
+    }
+
+    .habit-item.active {
+      border-color: color-mix(in srgb, var(--accent-2) 70%, white);
+      background: color-mix(in srgb, var(--accent-2) 12%, transparent);
+      box-shadow: 0 0 24px rgba(125, 249, 255, 0.12);
+    }
+
+    .habit-main {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .habit-emoji {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.1);
+      font-size: 22px;
+    }
+
+    .habit-name {
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .habit-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .ghost-btn {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.07);
+      padding: 9px 10px;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .ghost-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.28);
+    }
+
+    .ghost-btn.delete:hover {
+      color: var(--danger);
+      border-color: rgba(255, 107, 138, 0.6);
+    }
+
+    .empty {
+      color: var(--muted);
+      line-height: 1.6;
+      padding: 18px;
+      border: 1px dashed var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .calendar-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 22px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .month-title {
+      font-size: clamp(22px, 3vw, 34px);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .selected-habit {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 6px;
+    }
+
+    .month-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .weekdays,
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+
+    .weekdays {
+      padding: 16px 18px 0;
+      gap: 8px;
+    }
+
+    .weekday {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .calendar-grid {
+      padding: 14px 18px 22px;
+      gap: 8px;
+    }
+
+    .day {
+      position: relative;
+      min-height: 118px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.055);
+      color: var(--text);
+      padding: 12px;
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .day:hover {
+      transform: translateY(-3px);
+      border-color: color-mix(in srgb, var(--accent-2) 60%, white);
+      background: color-mix(in srgb, var(--accent-2) 9%, transparent);
+    }
+
+    .day.blank {
+      cursor: default;
+      opacity: 0.25;
+      background: transparent;
+      border-style: dashed;
+    }
+
+    .day.blank:hover {
+      transform: none;
+      border-color: var(--line);
+      background: transparent;
+    }
+
+    .day.today {
+      border-color: color-mix(in srgb, var(--accent) 90%, white);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 38%, transparent), 0 0 28px var(--glow);
+    }
+
+    .day.checked {
+      background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 18%, transparent), color-mix(in srgb, var(--accent-2) 12%, transparent));
+      border-color: color-mix(in srgb, var(--accent-2) 70%, white);
+    }
+
+    .day-number {
+      position: relative;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    .today .day-number {
+      color: #10101f;
+      background: var(--accent);
+      box-shadow: 0 0 18px var(--glow);
+    }
+
+    .stamp-list {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      gap: 6px;
+      margin-top: 10px;
+      min-height: 42px;
+    }
+
+    .stamp-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 13px;
+      font-size: 20px;
+      background: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+      animation: popStamp 0.28s cubic-bezier(.2, 1.6, .36, 1);
+    }
+
+    .done-text {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      text-align: center;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 900;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: 0.25s ease;
+    }
+
+    .checked .done-text {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .stats-panel {
+      padding: 22px;
+    }
+
+    .stats-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .stats-header h2 {
+      font-size: clamp(22px, 3vw, 32px);
+      letter-spacing: -0.04em;
+      margin-bottom: 6px;
+    }
+
+    .stats-header p {
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .stats-badge {
+      flex: 0 0 auto;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--accent-2) 32%, transparent);
+      background: color-mix(in srgb, var(--accent-2) 9%, transparent);
+      color: var(--accent-2);
+      font-weight: 900;
+      box-shadow: 0 0 24px rgba(125, 249, 255, 0.08);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat-card {
+      position: relative;
+      min-height: 136px;
+      padding: 17px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.045));
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .stat-card::before {
+      content: "";
+      position: absolute;
+      inset: -40px auto auto -40px;
+      width: 100px;
+      height: 100px;
+      border-radius: 999px;
+      background: var(--accent);
+      opacity: 0.16;
+      filter: blur(2px);
+    }
+
+    .stat-card:nth-child(2)::before {
+      background: var(--accent-2);
+    }
+
+    .stat-card:nth-child(3)::before {
+      background: var(--accent-3);
+    }
+
+    .stat-card:nth-child(4)::before {
+      background: var(--green);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(255, 255, 255, 0.24);
+    }
+
+    .stat-label,
+    .stat-value,
+    .stat-desc {
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .stat-value {
+      font-size: clamp(24px, 3vw, 34px);
+      font-weight: 950;
+      letter-spacing: -0.05em;
+      margin-bottom: 8px;
+      word-break: keep-all;
+    }
+
+    .stat-desc {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .mood-message {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin: 16px 0;
+      padding: 18px;
+      border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+      border-radius: 24px;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, transparent), color-mix(in srgb, var(--accent-2) 7%, transparent));
+    }
+
+    .mood-icon {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 16px;
+      font-size: 24px;
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.22);
+    }
+
+    .mood-message strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 16px;
+    }
+
+    .mood-message p {
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .progress-section {
+      margin-top: 18px;
+    }
+
+    .progress-section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .progress-section-title h3 {
+      font-size: 18px;
+      letter-spacing: -0.03em;
+    }
+
+    .progress-section-title span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .progress-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .progress-item {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .progress-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .progress-name {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      font-weight: 900;
+    }
+
+    .progress-emoji {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 13px;
+      background: rgba(255, 255, 255, 0.1);
+      flex: 0 0 auto;
+    }
+
+    .progress-count {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      flex: 0 0 auto;
+    }
+
+    .progress-bar {
+      height: 13px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: inset 0 1px 8px rgba(0, 0, 0, 0.22);
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent-2), var(--accent-3), var(--accent));
+      box-shadow: 0 0 18px rgba(125, 249, 255, 0.32);
+      transition: width 0.65s cubic-bezier(.2, .9, .2, 1);
+    }
+
+    @keyframes popStamp {
+      from {
+        opacity: 0;
+        transform: scale(0) rotate(-12deg);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+      }
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%) translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+      padding: 13px 18px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--text);
+      background: rgba(20, 20, 38, 0.88);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      transition: 0.25s ease;
+      z-index: 10;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 1080px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 900px) {
+      body {
+        padding: 18px;
+      }
+
+      .hero,
+      .layout {
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+
+      .streak-card {
+        min-width: 0;
+      }
+
+      .day {
+        min-height: 100px;
+        border-radius: 16px;
+        padding: 9px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .calendar-head,
+      .stats-header,
+      .progress-top,
+      .profile-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .hero-title-row {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .weekdays,
+      .calendar-grid {
+        gap: 6px;
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .day {
+        min-height: 78px;
+        border-radius: 14px;
+      }
+
+      .day-number {
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+      }
+
+      .stamp-list {
+        gap: 4px;
+        margin-top: 6px;
+      }
+
+      .stamp-chip {
+        width: 25px;
+        height: 25px;
+        border-radius: 9px;
+        font-size: 15px;
+      }
+
+      .done-text {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section id="profileScreen" class="screen entry-wrap">
+      <div class="entry-card">
+        <div class="entry-hero">
+          <div class="eyebrow">Personal Mood Habit Tracker</div>
+          <h1>누구의 루틴을<br />기록할까요?</h1>
+          <p>닉네임, 감성 컬러, 나만의 이모티콘을 고르면 사람마다 다른 습관 달력과 월간 통계가 저장됩니다.</p>
+        </div>
+
+        <div class="profile-area">
+          <div class="profile-head">
+            <h2>프로필 선택</h2>
+            <button class="btn" id="goCreateProfile" type="button">+ 새 프로필 만들기</button>
+          </div>
+          <div class="profile-grid" id="profileGrid"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="createProfileScreen" class="screen entry-wrap hidden">
+      <div class="entry-card">
+        <div class="entry-hero">
+          <div class="eyebrow">Create Profile</div>
+          <h1>나만의 감성<br />프로필 만들기</h1>
+          <p>프로필마다 습관, 기록, 통계가 따로 저장됩니다. 같은 브라우저 안에서도 사람별로 다른 화면을 볼 수 있어요.</p>
+        </div>
+
+        <div class="profile-area create-profile-panel">
+          <form class="form" id="profileForm">
+            <div>
+              <label for="profileNickname">닉네임</label>
+              <input id="profileNickname" type="text" placeholder="예: 다솜, 민준, 하린" maxlength="16" required />
+            </div>
+
+            <div>
+              <label>나만의 이모티콘</label>
+              <div class="choice-grid" id="profileEmojiChoices"></div>
+            </div>
+
+            <div>
+              <label>감성 컬러</label>
+              <div class="choice-grid" id="themeChoices"></div>
+            </div>
+
+            <div class="choice-grid">
+              <button class="btn" type="submit">시작하기</button>
+              <button class="btn secondary" id="backToProfiles" type="button">돌아가기</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section id="mainScreen" class="screen hidden">
+      <section class="hero">
+        <div>
+          <div class="eyebrow" id="profileEyebrow">Mood Diary Habit Tracker</div>
+          <div class="hero-title-row">
+            <div class="current-profile-bubble" id="currentProfileEmoji">🌙</div>
+            <h1 id="mainTitle">감성 이모지<br />습관 트래커</h1>
+          </div>
+          <p id="mainDescription">오늘의 작은 성공을 이모지 스티커로 기록해 보세요.</p>
+        </div>
+
+        <aside class="streak-card">
+          <div class="streak-number" id="streakNumber">🔥 0</div>
+          <div class="streak-label" id="streakText">아직 달성 기록이 없어요.</div>
+          <button class="btn secondary" id="changeProfile" type="button">프로필 변경</button>
+        </aside>
+      </section>
+
+      <section class="layout">
+        <aside class="panel">
+          <div class="panel-inner">
+            <div class="panel-title">
+              <h2>습관 등록</h2>
+              <span>✨</span>
+            </div>
+
+            <form class="form" id="habitForm">
+              <div>
+                <label for="habitName">습관 이름</label>
+                <input id="habitName" type="text" placeholder="예: 글쓰기, 미드저니 연습" maxlength="24" required />
+              </div>
+
+              <div>
+                <label for="habitEmoji">대표 이모지</label>
+                <select id="habitEmoji" required>
+                  <option value="✍️">✍️ 글쓰기</option>
+                  <option value="🎨">🎨 창작</option>
+                  <option value="📚">📚 독서</option>
+                  <option value="🏃">🏃 운동</option>
+                  <option value="🧘">🧘 명상</option>
+                  <option value="💧">💧 물 마시기</option>
+                  <option value="💻">💻 코딩</option>
+                  <option value="🎧">🎧 공부</option>
+                  <option value="🌙">🌙 수면 루틴</option>
+                  <option value="☕">☕ 아침 루틴</option>
+                  <option value="🔥">🔥 챌린지</option>
+                  <option value="🌱">🌱 성장</option>
+                </select>
+              </div>
+
+              <button class="btn" type="submit">습관 추가하기</button>
+            </form>
+
+            <div class="panel-title">
+              <h2>내 습관</h2>
+              <span id="habitCount">0개</span>
+            </div>
+            <p class="hint">습관을 선택한 뒤 달력 날짜를 누르면 그 날짜에 해당 습관이 추가됩니다. 같은 날짜에 여러 습관을 넣을 수 있어요.</p>
+
+            <div class="habit-list" id="habitList"></div>
+          </div>
+        </aside>
+
+        <div class="right-column">
+          <section class="panel">
+            <header class="calendar-head">
+              <div>
+                <div class="month-title" id="monthTitle"></div>
+                <div class="selected-habit" id="selectedHabitText">습관을 먼저 등록해 주세요.</div>
+              </div>
+
+              <div class="month-controls">
+                <button class="ghost-btn" id="prevMonth" type="button">←</button>
+                <button class="ghost-btn" id="todayMonth" type="button">오늘</button>
+                <button class="ghost-btn" id="nextMonth" type="button">→</button>
+              </div>
+            </header>
+
+            <div class="weekdays">
+              <div class="weekday">일</div>
+              <div class="weekday">월</div>
+              <div class="weekday">화</div>
+              <div class="weekday">수</div>
+              <div class="weekday">목</div>
+              <div class="weekday">금</div>
+              <div class="weekday">토</div>
+            </div>
+
+            <div class="calendar-grid" id="calendarGrid"></div>
+          </section>
+
+          <section class="panel stats-panel">
+            <header class="stats-header">
+              <div>
+                <h2>월간 통계</h2>
+                <p id="statsSubtitle">이번 달 습관 기록을 한눈에 확인해요.</p>
+              </div>
+              <div class="stats-badge" id="statsBadge">Monthly</div>
+            </header>
+
+            <div class="stats-grid">
+              <article class="stat-card">
+                <div class="stat-label">총 완료</div>
+                <div class="stat-value" id="totalDoneStat">0개</div>
+                <div class="stat-desc">이번 달 누적 습관 기록</div>
+              </article>
+
+              <article class="stat-card">
+                <div class="stat-label">기록한 날짜</div>
+                <div class="stat-value" id="activeDaysStat">0일</div>
+                <div class="stat-desc">하나 이상 실천한 날</div>
+              </article>
+
+              <article class="stat-card">
+                <div class="stat-label">가장 많이 한 습관</div>
+                <div class="stat-value" id="topHabitStat">-</div>
+                <div class="stat-desc" id="topHabitDesc">아직 기록이 없어요.</div>
+              </article>
+
+              <article class="stat-card">
+                <div class="stat-label">가장 꽉 찬 하루</div>
+                <div class="stat-value" id="busiestDayStat">-</div>
+                <div class="stat-desc" id="busiestDayDesc">습관이 가장 많았던 날</div>
+              </article>
+            </div>
+
+            <div class="mood-message">
+              <div class="mood-icon" id="moodIcon">🌙</div>
+              <div>
+                <strong id="moodTitle">이번 달 기록을 시작해 볼까요?</strong>
+                <p id="moodText">오늘 하나만 찍어도 이번 달의 첫 루틴이 시작됩니다.</p>
+              </div>
+            </div>
+
+            <div class="progress-section">
+              <div class="progress-section-title">
+                <h3>습관별 월간 진행률</h3>
+                <span id="progressGuide">이번 달 전체 날짜 기준</span>
+              </div>
+              <div class="progress-list" id="progressList"></div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div class="toast" id="toast">저장했어요.</div>
+
+  <script>
+    const PROFILE_STORAGE_KEY = "emojiHabitTrackerProfiles_v1";
+    const OLD_STORAGE_KEY = "emojiHabitTrackerData_v2";
+
+    const THEMES = {
+      pink: {
+        label: "Pastel Pink",
+        accent: "#ff8bd1",
+        accent2: "#7df9ff",
+        accent3: "#9c7cff",
+        glow: "rgba(255, 139, 209, 0.28)"
+      },
+      blue: {
+        label: "Neon Blue",
+        accent: "#7df9ff",
+        accent2: "#8aa7ff",
+        accent3: "#9c7cff",
+        glow: "rgba(125, 249, 255, 0.24)"
+      },
+      purple: {
+        label: "Lavender Purple",
+        accent: "#b99cff",
+        accent2: "#ff8bd1",
+        accent3: "#7df9ff",
+        glow: "rgba(185, 156, 255, 0.28)"
+      },
+      mint: {
+        label: "Mint Green",
+        accent: "#9dffb0",
+        accent2: "#7df9ff",
+        accent3: "#ffcf7d",
+        glow: "rgba(157, 255, 176, 0.20)"
+      },
+      sunset: {
+        label: "Sunset Orange",
+        accent: "#ffb36b",
+        accent2: "#ff8bd1",
+        accent3: "#9c7cff",
+        glow: "rgba(255, 179, 107, 0.24)"
+      }
+    };
+
+    const PROFILE_EMOJIS = ["🌙", "🐰", "🐻", "🐱", "🦊", "🐥", "🐳", "🍒", "🌸", "⭐", "🧸", "🦄"];
+
+    const state = {
+      screen: "profile",
+      profiles: [],
+      activeProfileId: null,
+      draftProfileEmoji: "🌙",
+      draftTheme: "pink",
+      viewDate: new Date()
+    };
+
+    const profileScreen = document.getElementById("profileScreen");
+    const createProfileScreen = document.getElementById("createProfileScreen");
+    const mainScreen = document.getElementById("mainScreen");
+    const profileGrid = document.getElementById("profileGrid");
+    const goCreateProfile = document.getElementById("goCreateProfile");
+    const backToProfiles = document.getElementById("backToProfiles");
+    const profileForm = document.getElementById("profileForm");
+    const profileNickname = document.getElementById("profileNickname");
+    const profileEmojiChoices = document.getElementById("profileEmojiChoices");
+    const themeChoices = document.getElementById("themeChoices");
+    const changeProfile = document.getElementById("changeProfile");
+
+    const habitForm = document.getElementById("habitForm");
+    const habitNameInput = document.getElementById("habitName");
+    const habitEmojiSelect = document.getElementById("habitEmoji");
+    const habitList = document.getElementById("habitList");
+    const habitCount = document.getElementById("habitCount");
+    const calendarGrid = document.getElementById("calendarGrid");
+    const monthTitle = document.getElementById("monthTitle");
+    const selectedHabitText = document.getElementById("selectedHabitText");
+    const streakNumber = document.getElementById("streakNumber");
+    const streakText = document.getElementById("streakText");
+    const toast = document.getElementById("toast");
+
+    const profileEyebrow = document.getElementById("profileEyebrow");
+    const currentProfileEmoji = document.getElementById("currentProfileEmoji");
+    const mainTitle = document.getElementById("mainTitle");
+    const mainDescription = document.getElementById("mainDescription");
+
+    const statsSubtitle = document.getElementById("statsSubtitle");
+    const statsBadge = document.getElementById("statsBadge");
+    const totalDoneStat = document.getElementById("totalDoneStat");
+    const activeDaysStat = document.getElementById("activeDaysStat");
+    const topHabitStat = document.getElementById("topHabitStat");
+    const topHabitDesc = document.getElementById("topHabitDesc");
+    const busiestDayStat = document.getElementById("busiestDayStat");
+    const busiestDayDesc = document.getElementById("busiestDayDesc");
+    const moodIcon = document.getElementById("moodIcon");
+    const moodTitle = document.getElementById("moodTitle");
+    const moodText = document.getElementById("moodText");
+    const progressList = document.getElementById("progressList");
+    const progressGuide = document.getElementById("progressGuide");
+
+    goCreateProfile.addEventListener("click", () => {
+      state.screen = "create";
+      profileNickname.value = "";
+      render();
+    });
+
+    backToProfiles.addEventListener("click", () => {
+      state.screen = "profile";
+      render();
+    });
+
+    changeProfile.addEventListener("click", () => {
+      state.screen = "profile";
+      render();
+    });
+
+    document.getElementById("prevMonth").addEventListener("click", () => changeMonth(-1));
+    document.getElementById("nextMonth").addEventListener("click", () => changeMonth(1));
+    document.getElementById("todayMonth").addEventListener("click", () => {
+      state.viewDate = new Date();
+      renderMain();
+    });
+
+    profileForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const nickname = profileNickname.value.trim();
+      if (!nickname) return;
+
+      const profile = {
+        id: createId(),
+        nickname,
+        emoji: state.draftProfileEmoji,
+        theme: state.draftTheme,
+        habits: [],
+        selectedHabitId: null,
+        records: {}
+      };
+
+      state.profiles.push(profile);
+      state.activeProfileId = profile.id;
+      state.screen = "main";
+      saveData();
+      render();
+      showToast(`${profile.emoji} ${profile.nickname} 프로필을 만들었어요.`);
+    });
+
+    habitForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const profile = getActiveProfile();
+      if (!profile) return;
+
+      const name = habitNameInput.value.trim();
+      const emoji = habitEmojiSelect.value;
+      if (!name) return;
+
+      const habit = {
+        id: createId(),
+        name,
+        emoji
+      };
+
+      profile.habits.push(habit);
+      profile.selectedHabitId = habit.id;
+      habitNameInput.value = "";
+      saveData();
+      renderMain();
+      showToast("새 습관을 추가했어요 ✨");
+    });
+
+    function loadData() {
+      const saved = localStorage.getItem(PROFILE_STORAGE_KEY);
+      const oldSaved = localStorage.getItem(OLD_STORAGE_KEY);
+
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          state.profiles = Array.isArray(data.profiles) ? data.profiles.map(normalizeProfile) : [];
+          state.activeProfileId = data.activeProfileId || null;
+          state.screen = "profile";
+          return;
+        } catch (error) {
+          console.error("프로필 데이터를 불러오지 못했습니다.", error);
+        }
+      }
+
+      if (oldSaved) {
+        try {
+          const oldData = JSON.parse(oldSaved);
+          const migratedProfile = normalizeProfile({
+            id: createId(),
+            nickname: "나의 기록",
+            emoji: "🌙",
+            theme: "pink",
+            habits: Array.isArray(oldData.habits) ? oldData.habits : [],
+            selectedHabitId: oldData.selectedHabitId || null,
+            records: oldData.records || {}
+          });
+
+          state.profiles = [migratedProfile];
+          state.activeProfileId = migratedProfile.id;
+          state.screen = "profile";
+          saveData();
+          return;
+        } catch (error) {
+          console.error("이전 데이터를 프로필로 변환하지 못했습니다.", error);
+        }
+      }
+
+      state.profiles = [];
+      state.activeProfileId = null;
+      state.screen = "profile";
+    }
+
+    function normalizeProfile(profile) {
+      return {
+        id: profile.id || createId(),
+        nickname: profile.nickname || "이름 없음",
+        emoji: profile.emoji || "🌙",
+        theme: THEMES[profile.theme] ? profile.theme : "pink",
+        habits: Array.isArray(profile.habits) ? profile.habits : [],
+        selectedHabitId: profile.selectedHabitId || profile.habits?.[0]?.id || null,
+        records: normalizeRecords(profile.records || {})
+      };
+    }
+
+    function normalizeRecords(records) {
+      const normalized = {};
+      Object.entries(records).forEach(([habitId, dates]) => {
+        normalized[habitId] = {};
+        Object.entries(dates || {}).forEach(([dateKey, value]) => {
+          if (value) normalized[habitId][dateKey] = true;
+        });
+      });
+      return normalized;
+    }
+
+    function saveData() {
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify({
+        activeProfileId: state.activeProfileId,
+        profiles: state.profiles
+      }));
+    }
+
+    function render() {
+      renderProfileChoices();
+      renderThemeChoices();
+      renderScreens();
+
+      if (state.screen === "main") {
+        renderMain();
+      } else {
+        applyTheme("pink");
+      }
+    }
+
+    function renderScreens() {
+      profileScreen.classList.toggle("hidden", state.screen !== "profile");
+      createProfileScreen.classList.toggle("hidden", state.screen !== "create");
+      mainScreen.classList.toggle("hidden", state.screen !== "main");
+    }
+
+    function renderProfileChoices() {
+      profileGrid.innerHTML = "";
+
+      if (state.profiles.length === 0) {
+        profileGrid.innerHTML = `<div class="empty">아직 등록된 프로필이 없어요.<br />나만의 감성 프로필을 먼저 만들어 주세요.</div>`;
+        return;
+      }
+
+      state.profiles.forEach((profile) => {
+        const theme = THEMES[profile.theme] || THEMES.pink;
+        const card = document.createElement("button");
+        card.className = "profile-card";
+        card.type = "button";
+        card.style.setProperty("--profile-color", theme.accent);
+        card.innerHTML = `
+          <div class="profile-emoji">${profile.emoji}</div>
+          <div class="profile-name">${escapeHtml(profile.nickname)}</div>
+          <div class="profile-theme">${theme.label} · 습관 ${profile.habits.length}개</div>
+          <div class="profile-actions">
+            <button class="ghost-btn delete" type="button">삭제</button>
+          </div>
+        `;
+
+        card.addEventListener("click", () => {
+          state.activeProfileId = profile.id;
+          state.screen = "main";
+          saveData();
+          render();
+        });
+
+        card.querySelector(".delete").addEventListener("click", (event) => {
+          event.stopPropagation();
+          deleteProfile(profile.id);
+        });
+
+        profileGrid.appendChild(card);
+      });
+    }
+
+    function renderThemeChoices() {
+      profileEmojiChoices.innerHTML = "";
+      themeChoices.innerHTML = "";
+
+      PROFILE_EMOJIS.forEach((emoji) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `emoji-choice ${emoji === state.draftProfileEmoji ? "active" : ""}`;
+        button.textContent = emoji;
+        button.addEventListener("click", () => {
+          state.draftProfileEmoji = emoji;
+          renderThemeChoices();
+        });
+        profileEmojiChoices.appendChild(button);
+      });
+
+      Object.entries(THEMES).forEach(([key, theme]) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `theme-choice ${key === state.draftTheme ? "active" : ""}`;
+        button.innerHTML = `<span class="theme-dot" style="--dot-color:${theme.accent}"></span>${theme.label}`;
+        button.addEventListener("click", () => {
+          state.draftTheme = key;
+          applyTheme(key);
+          renderThemeChoices();
+        });
+        themeChoices.appendChild(button);
+      });
+    }
+
+    function renderMain() {
+      const profile = getActiveProfile();
+      if (!profile) {
+        state.screen = "profile";
+        render();
+        return;
+      }
+
+      applyTheme(profile.theme);
+      renderProfileHeader(profile);
+      renderHabits(profile);
+      renderCalendar(profile);
+      renderStreak(profile);
+      renderMonthlyStats(profile);
+    }
+
+    function renderProfileHeader(profile) {
+      const theme = THEMES[profile.theme] || THEMES.pink;
+      profileEyebrow.textContent = theme.label;
+      currentProfileEmoji.textContent = profile.emoji;
+      mainTitle.innerHTML = `${escapeHtml(profile.nickname)}의<br />감성 루틴`;
+      mainDescription.textContent = `${profile.emoji} ${profile.nickname}님만의 습관과 기록이 따로 저장됩니다. 오늘의 작은 루틴을 남겨보세요.`;
+    }
+
+    function renderHabits(profile) {
+      habitList.innerHTML = "";
+      habitCount.textContent = `${profile.habits.length}개`;
+
+      if (profile.habits.length === 0) {
+        habitList.innerHTML = `<div class="empty">아직 등록된 습관이 없어요.<br />위에서 습관을 하나 추가해 주세요.</div>`;
+        selectedHabitText.textContent = "습관을 먼저 등록해 주세요.";
+        return;
+      }
+
+      profile.habits.forEach((habit) => {
+        const item = document.createElement("div");
+        item.className = `habit-item ${habit.id === profile.selectedHabitId ? "active" : ""}`;
+        item.innerHTML = `
+          <div class="habit-main">
+            <div class="habit-emoji">${habit.emoji}</div>
+            <div class="habit-name">${escapeHtml(habit.name)}</div>
+          </div>
+          <div class="habit-actions">
+            <button class="ghost-btn select" type="button">선택</button>
+            <button class="ghost-btn delete" type="button">삭제</button>
+          </div>
+        `;
+
+        item.querySelector(".select").addEventListener("click", () => {
+          profile.selectedHabitId = habit.id;
+          saveData();
+          renderMain();
+        });
+
+        item.querySelector(".delete").addEventListener("click", () => deleteHabit(profile, habit.id));
+        habitList.appendChild(item);
+      });
+    }
+
+    function renderCalendar(profile) {
+      const year = state.viewDate.getFullYear();
+      const month = state.viewDate.getMonth();
+      const today = new Date();
+      const selectedHabit = getSelectedHabit(profile);
+
+      monthTitle.textContent = `${year}년 ${month + 1}월`;
+      selectedHabitText.textContent = selectedHabit
+        ? `현재 선택: ${selectedHabit.emoji} ${selectedHabit.name} · 날짜를 누르면 추가/취소됩니다.`
+        : "습관을 먼저 등록해 주세요.";
+
+      calendarGrid.innerHTML = "";
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const lastDate = getDaysInMonth(year, month);
+
+      for (let i = 0; i < firstDay; i++) {
+        const blank = document.createElement("div");
+        blank.className = "day blank";
+        calendarGrid.appendChild(blank);
+      }
+
+      for (let date = 1; date <= lastDate; date++) {
+        const day = document.createElement("button");
+        const dateKey = makeDateKey(year, month, date);
+        const habitsForDate = getHabitsForDate(profile, dateKey);
+        const isToday = year === today.getFullYear() && month === today.getMonth() && date === today.getDate();
+        const isChecked = habitsForDate.length > 0;
+
+        day.type = "button";
+        day.className = `day ${isToday ? "today" : ""} ${isChecked ? "checked" : ""}`;
+        day.innerHTML = `
+          <span class="day-number">${date}</span>
+          <div class="stamp-list">
+            ${habitsForDate.map((habit) => `<span class="stamp-chip" title="${escapeHtml(habit.name)}">${habit.emoji}</span>`).join("")}
+          </div>
+          <span class="done-text">${habitsForDate.length}개 습관 완료</span>
+        `;
+
+        day.addEventListener("click", () => toggleRecord(profile, dateKey));
+        calendarGrid.appendChild(day);
+      }
+    }
+
+    function renderStreak(profile) {
+      const selectedHabit = getSelectedHabit(profile);
+      const streak = selectedHabit ? calculateStreak(profile, selectedHabit.id) : 0;
+
+      streakNumber.textContent = `🔥 ${streak}`;
+      streakText.textContent = selectedHabit
+        ? `${selectedHabit.emoji} ${selectedHabit.name} · ${streak}일 연속 달성 중!`
+        : "습관을 선택하면 연속 달성을 계산해요.";
+    }
+
+    function renderMonthlyStats(profile) {
+      const stats = getMonthlyStats(profile);
+      const monthLabel = `${stats.year}년 ${stats.month + 1}월`;
+
+      statsSubtitle.textContent = `${profile.emoji} ${profile.nickname}님의 ${monthLabel} 습관 기록입니다.`;
+      statsBadge.textContent = `${stats.month + 1}월 리포트`;
+      progressGuide.textContent = `월 ${stats.daysInMonth}일 기준`;
+
+      totalDoneStat.textContent = `${stats.totalDone}개`;
+      activeDaysStat.textContent = `${stats.activeDays}일`;
+
+      if (stats.topHabit) {
+        topHabitStat.textContent = `${stats.topHabit.emoji} ${stats.topHabit.name}`;
+        topHabitDesc.textContent = `${stats.topHabit.count}회 완료한 이번 달 최다 습관`;
+      } else {
+        topHabitStat.textContent = "-";
+        topHabitDesc.textContent = "아직 기록이 없어요.";
+      }
+
+      if (stats.busiestDay) {
+        busiestDayStat.textContent = `${stats.month + 1}/${stats.busiestDay.date}`;
+        busiestDayDesc.textContent = `${stats.busiestDay.count}개 습관을 완료한 날`;
+      } else {
+        busiestDayStat.textContent = "-";
+        busiestDayDesc.textContent = "습관이 가장 많았던 날";
+      }
+
+      renderMoodMessage(profile, stats);
+      renderProgressList(profile, stats);
+    }
+
+    function renderMoodMessage(profile, stats) {
+      if (stats.totalDone === 0) {
+        moodIcon.textContent = profile.emoji;
+        moodTitle.textContent = `${profile.nickname}님의 이번 달 기록을 시작해 볼까요?`;
+        moodText.textContent = "오늘 하나만 찍어도 이번 달의 첫 루틴이 시작됩니다.";
+        return;
+      }
+
+      if (stats.activeDays < 5) {
+        moodIcon.textContent = "🌱";
+        moodTitle.textContent = "기록이 천천히 쌓이고 있어요.";
+        moodText.textContent = "완벽하지 않아도 괜찮아요. 작은 실천을 눈에 보이게 남기는 것부터 충분합니다.";
+        return;
+      }
+
+      if (stats.activeDays < 15) {
+        moodIcon.textContent = "✨";
+        moodTitle.textContent = "이번 달 루틴 흐름이 좋아지고 있어요.";
+        moodText.textContent = stats.topHabit
+          ? `가장 많이 실천한 습관은 ${stats.topHabit.emoji} ${stats.topHabit.name}입니다. 이 흐름을 조금씩 이어가 보세요.`
+          : "기록이 쌓이면서 나만의 루틴 패턴이 보이기 시작합니다.";
+        return;
+      }
+
+      moodIcon.textContent = "🔥";
+      moodTitle.textContent = `${profile.nickname}님의 꾸준함이 확실히 보이는 달이에요.`;
+      moodText.textContent = stats.topHabit
+        ? `${stats.topHabit.emoji} ${stats.topHabit.name}을 중심으로 루틴이 안정적으로 쌓이고 있습니다.`
+        : "여러 습관이 꾸준히 쌓이고 있습니다.";
+    }
+
+    function renderProgressList(profile, stats) {
+      progressList.innerHTML = "";
+
+      if (profile.habits.length === 0) {
+        progressList.innerHTML = `<div class="empty">습관을 추가하면 월간 진행률이 여기에 표시됩니다.</div>`;
+        return;
+      }
+
+      profile.habits.forEach((habit) => {
+        const count = stats.habitCounts[habit.id] || 0;
+        const percent = Math.round((count / stats.daysInMonth) * 100);
+        const item = document.createElement("div");
+        item.className = "progress-item";
+        item.innerHTML = `
+          <div class="progress-top">
+            <div class="progress-name">
+              <span class="progress-emoji">${habit.emoji}</span>
+              <span>${escapeHtml(habit.name)}</span>
+            </div>
+            <div class="progress-count">${count}일 / ${stats.daysInMonth}일 · ${percent}%</div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${percent}%"></div>
+          </div>
+        `;
+        progressList.appendChild(item);
+      });
+    }
+
+    function getMonthlyStats(profile) {
+      const year = state.viewDate.getFullYear();
+      const month = state.viewDate.getMonth();
+      const daysInMonth = getDaysInMonth(year, month);
+      const habitCounts = {};
+      const dayCounts = {};
+      let totalDone = 0;
+
+      profile.habits.forEach((habit) => {
+        let count = 0;
+
+        for (let date = 1; date <= daysInMonth; date++) {
+          const dateKey = makeDateKey(year, month, date);
+
+          if (profile.records[habit.id]?.[dateKey]) {
+            count++;
+            totalDone++;
+            dayCounts[date] = (dayCounts[date] || 0) + 1;
+          }
+        }
+
+        habitCounts[habit.id] = count;
+      });
+
+      return {
+        year,
+        month,
+        daysInMonth,
+        habitCounts,
+        dayCounts,
+        totalDone,
+        activeDays: Object.keys(dayCounts).length,
+        topHabit: getTopHabit(profile, habitCounts),
+        busiestDay: getBusiestDay(dayCounts)
+      };
+    }
+
+    function getTopHabit(profile, habitCounts) {
+      let top = null;
+
+      profile.habits.forEach((habit) => {
+        const count = habitCounts[habit.id] || 0;
+        if (count === 0) return;
+
+        if (!top || count > top.count) {
+          top = { ...habit, count };
+        }
+      });
+
+      return top;
+    }
+
+    function getBusiestDay(dayCounts) {
+      let busiest = null;
+
+      Object.entries(dayCounts).forEach(([date, count]) => {
+        if (!busiest || count > busiest.count) {
+          busiest = { date: Number(date), count };
+        }
+      });
+
+      return busiest;
+    }
+
+    function toggleRecord(profile, dateKey) {
+      const selectedHabit = getSelectedHabit(profile);
+
+      if (!selectedHabit) {
+        showToast("먼저 습관을 등록해 주세요 🌙");
+        return;
+      }
+
+      if (!profile.records[selectedHabit.id]) {
+        profile.records[selectedHabit.id] = {};
+      }
+
+      if (profile.records[selectedHabit.id][dateKey]) {
+        delete profile.records[selectedHabit.id][dateKey];
+        showToast(`${selectedHabit.emoji} ${selectedHabit.name} 일정을 취소했어요.`);
+      } else {
+        profile.records[selectedHabit.id][dateKey] = true;
+        showToast(`${selectedHabit.emoji} ${selectedHabit.name} 일정을 추가했어요!`);
+      }
+
+      saveData();
+      renderMain();
+    }
+
+    function getHabitsForDate(profile, dateKey) {
+      return profile.habits.filter((habit) => profile.records[habit.id]?.[dateKey]);
+    }
+
+    function calculateStreak(profile, habitId) {
+      const record = profile.records[habitId] || {};
+      let streak = 0;
+      const cursor = new Date();
+
+      while (true) {
+        const key = makeDateKey(cursor.getFullYear(), cursor.getMonth(), cursor.getDate());
+        if (!record[key]) break;
+        streak++;
+        cursor.setDate(cursor.getDate() - 1);
+      }
+
+      return streak;
+    }
+
+    function deleteProfile(profileId) {
+      const profile = state.profiles.find((item) => item.id === profileId);
+      const confirmed = confirm(`'${profile?.nickname || "이 프로필"}' 프로필을 삭제할까요? 습관과 기록도 함께 삭제됩니다.`);
+      if (!confirmed) return;
+
+      state.profiles = state.profiles.filter((item) => item.id !== profileId);
+      if (state.activeProfileId === profileId) {
+        state.activeProfileId = null;
+      }
+      state.screen = "profile";
+      saveData();
+      render();
+      showToast("프로필을 삭제했어요.");
+    }
+
+    function deleteHabit(profile, habitId) {
+      const habit = profile.habits.find((item) => item.id === habitId);
+      const confirmed = confirm(`'${habit?.name || "이 습관"}'을 삭제할까요? 기록도 함께 삭제됩니다.`);
+      if (!confirmed) return;
+
+      profile.habits = profile.habits.filter((item) => item.id !== habitId);
+      delete profile.records[habitId];
+
+      if (profile.selectedHabitId === habitId) {
+        profile.selectedHabitId = profile.habits[0]?.id || null;
+      }
+
+      saveData();
+      renderMain();
+      showToast("습관을 삭제했어요.");
+    }
+
+    function changeMonth(amount) {
+      state.viewDate = new Date(state.viewDate.getFullYear(), state.viewDate.getMonth() + amount, 1);
+      renderMain();
+    }
+
+    function applyTheme(themeKey) {
+      const theme = THEMES[themeKey] || THEMES.pink;
+      const root = document.documentElement;
+      root.style.setProperty("--accent", theme.accent);
+      root.style.setProperty("--accent-2", theme.accent2);
+      root.style.setProperty("--accent-3", theme.accent3);
+      root.style.setProperty("--glow", theme.glow);
+    }
+
+    function getActiveProfile() {
+      return state.profiles.find((profile) => profile.id === state.activeProfileId) || null;
+    }
+
+    function getSelectedHabit(profile) {
+      return profile.habits.find((habit) => habit.id === profile.selectedHabitId) || null;
+    }
+
+    function getDaysInMonth(year, month) {
+      return new Date(year, month + 1, 0).getDate();
+    }
+
+    function makeDateKey(year, month, date) {
+      const mm = String(month + 1).padStart(2, "0");
+      const dd = String(date).padStart(2, "0");
+      return `${year}-${mm}-${dd}`;
+    }
+
+    function createId() {
+      return crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random());
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => {
+        toast.classList.remove("show");
+      }, 1600);
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    loadData();
+    render();
+  </script>
+</body>
+</html>
